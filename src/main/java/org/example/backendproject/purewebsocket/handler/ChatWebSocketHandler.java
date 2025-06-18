@@ -9,13 +9,20 @@ import org.example.backendproject.purewebsocket.dto.ChatMessage;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
+    //세션을 관리하는 객체
+    //Collections.synchronizedSet <- 여러 스레드가 동시에 이 객체에 접근할 때 동시설 문제를 안전하게 만들어주는 역할
     private final Set<WebSocketSession> sessions = Collections.synchronizedSet(new HashSet<>());
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    //방과 방 안에 있는 세션을 관리하는 객체
+    private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
 
 
     // 클라이언트가 웹소켓 서버에 접속했을 때 호출
@@ -26,7 +33,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         sessions.add(session);
 
         System.out.println("접속한 클라이언트 세션 아이디 = " + session.getRemoteAddress());
-    }
+}
 
     // 클라이언트가 보낸 메시지를 받았을 때 호출
     @Override
@@ -35,13 +42,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         ChatMessage chatMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
 
+        String roomId = chatMessage.getRoomId();
+
+        if (!rooms.containsKey(roomId)) {
+            rooms.put(roomId, ConcurrentHashMap.newKeySet());
+
+        }
+
+        rooms.get(roomId).add(session);
+
         for (WebSocketSession s : sessions) {
+            // for (WebSocketSession s : sessions) {
             if (s.isOpen()) {
                 s.sendMessage(new TextMessage(objectMapper.writeValueAsString(chatMessage)));
 
-
                 System.out.println("이름 = " + chatMessage.getFrom() + ", 전송된 메시지 = " + chatMessage.getMessage());
             }
+            //}
         }
     }
 
@@ -51,5 +68,10 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         super.afterConnectionClosed(session, status);
 
         sessions.remove(session);
+
+        for (Set<WebSocketSession> room: rooms.values()) {
+            room.remove(session);
+
+        }
     }
 }
