@@ -8,6 +8,6 @@ public class HtmlController {
 
     @GetMapping("/")
     public String index() {
-        return "redirect:/stompchat1.html";
+        return "redirect:/stompchat2.html";
     }
 }
