@@ -24,6 +24,11 @@ public class ChatController {
     // 동적 방 생성
     @MessageMapping({"chat.sendMessage"})
     public void sendmessage(ChatMessage message) {
+        if (message.getTo() != null && !message.getTo().isEmpty()) {
+            template.convertAndSendToUser(message.getTo(), "/queue/private", message);
+        } else {
             template.convertAndSend("/topic/" + message.getRoomId(), message);
+        }
+
     }
 }
