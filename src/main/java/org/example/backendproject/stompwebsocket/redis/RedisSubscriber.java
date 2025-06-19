@@ -14,16 +14,21 @@ import org.springframework.stereotype.Service;
 public class RedisSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
             String msgBody = new String(message.getBody());
             ChatMessage chatMessage = objectMapper.readValue(msgBody, ChatMessage.class);
-            simpMessagingTemplate.convertAndSend("/topic/room." + chatMessage.getRoomId(), chatMessage);
-        } catch (JsonProcessingException e) {
 
+            if (chatMessage.getTo() != null && !chatMessage.getTo().isEmpty()) {
+                simpMessagingTemplate.convertAndSendToUser(chatMessage.getTo(), "/queue/private", chatMessage);
+            } else {
+                simpMessagingTemplate.convertAndSend("/topic/room." + chatMessage.getRoomId(), chatMessage);
+            }
+        } catch (JsonProcessingException e) {
+            e.getMessage();
         }
     }
 }

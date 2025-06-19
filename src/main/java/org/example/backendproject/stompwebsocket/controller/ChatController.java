@@ -20,14 +20,14 @@ public class ChatController {
 //        return message;
 //    }
 
-    // 서버가 클라이언트에게 수도으로 메시지를 보낼 수 있도록 하는 클래스
+    // 서버가 클라이언트에게 수동으로 메시지를 보낼 수 있도록 하는 클래스
     private final SimpMessagingTemplate template;
 
     @Value("${PROJECT_NAME:web Server}")
     private String instansName;
 
     private final RedisPublisher redisPublisher;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     // 동적 방 생성
@@ -41,8 +41,14 @@ public class ChatController {
             template.convertAndSend("/topic/" + message.getRoomId(), message);
         }*/
 
+        String channel;
+        if (message.getTo() != null && !message.getTo().isEmpty()) {
+            channel = "private" + message.getTo();
+        } else {
+            channel = "room." + message.getRoomId();
+        }
 
-        String channel = "room." + message.getRoomId();
+        
         String msg = objectMapper.writeValueAsString(message);
         redisPublisher.publish(channel, msg);
     }
