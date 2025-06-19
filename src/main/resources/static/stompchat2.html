@@ -152,7 +152,8 @@
             //귓속말
             stompClient.subscribe('/user/queue/private', function (message) {
                 const msg = JSON.parse(message.body);
-                alert("💬 귓속말: " + msg.from + " - " + msg.message);
+                showMessage("[💬 귓속말]" + msg.from, msg.message);
+                // alert("💬 귓속말: " + msg.from + " - " + msg.message);
             });
 
         });
