@@ -1,7 +1,10 @@
 package org.example.backendproject.stompwebsocket.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.backendproject.stompwebsocket.dto.ChatMessage;
+import org.example.backendproject.stompwebsocket.redis.RedisPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,17 +26,25 @@ public class ChatController {
     @Value("${PROJECT_NAME:web Server}")
     private String instansName;
 
+    private final RedisPublisher redisPublisher;
+    private ObjectMapper objectMapper = new ObjectMapper();
+
 
     // 동적 방 생성
     @MessageMapping({"chat.sendMessage"})
-    public void sendmessage(ChatMessage message) {
+    public void sendmessage(ChatMessage message) throws JsonProcessingException {
         message.setMessage(message.getMessage());
 
-        if (message.getTo() != null && !message.getTo().isEmpty()) {
+        /*if (message.getTo() != null && !message.getTo().isEmpty()) {
             template.convertAndSendToUser(message.getTo(), "/queue/private", message);
         } else {
             template.convertAndSend("/topic/" + message.getRoomId(), message);
-        }
+        }*/
 
+
+        String channel = "room." + message.getRoomId();
+        String msg = objectMapper.writeValueAsString(message);
+        redisPublisher.publish(channel, msg);
     }
+
 }

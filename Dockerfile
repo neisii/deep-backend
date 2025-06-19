@@ -1,5 +1,4 @@
 # 이 프로젝트를 이미지 화 하기 위한 스크립트
-
 FROM openjdk:17-jdk
 LABEL authors="NEISII"
 
