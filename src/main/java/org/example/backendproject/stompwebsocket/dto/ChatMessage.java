@@ -17,4 +17,9 @@ public class ChatMessage {
     
     private String from; // 보낸 사람
     private String to; // 받은 사람
+
+    public ChatMessage(String from, String message) {
+        this.from = from;
+        this.message = message;
+    }
 }

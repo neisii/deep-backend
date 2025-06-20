@@ -21,8 +21,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 전체 채팅
         registry.addEndpoint("/ws-chat")
                 .setHandshakeHandler(new CustomHandShakeHandler())
+                .setAllowedOriginPatterns("*");
+
+        // gpt 채팅
+        registry.addEndpoint("/ws-gpt")
                 .setAllowedOriginPatterns("*");
     }
 }
