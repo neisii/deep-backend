@@ -36,10 +36,14 @@ public class ChatController {
     // gpt 서비스로 전송
     @MessageMapping("/gpt")
     public void sendMessageGpt(ChatMessage message) throws Exception {
-        String getResponse = gptService.gptMessage(message.getMessage());
 
+        // 내가 보낸 메시지 출력
+        template.convertAndSend("/topic/gpt", message);
+
+        String getResponse = gptService.gptMessage(message.getMessage());
         ChatMessage chatMessage = new ChatMessage("GPT says, ", getResponse);
 
+        // Gtp 응답 출력
         template.convertAndSend("/topic/gpt", chatMessage);
     }
 

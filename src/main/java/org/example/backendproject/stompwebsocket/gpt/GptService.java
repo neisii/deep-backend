@@ -2,6 +2,7 @@ package org.example.backendproject.stompwebsocket.gpt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,19 +17,22 @@ public class GptService {
     //json문자열 <-> 자바객체, json객체
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public String gptMessage(String message) throws Exception{
+    @Value("${external.chatgpt.api.key}")
+    private String API_KEY;
+    private final static String GPT_MODEL_4 = "gpt-4.1";
+    private final static String GPT_MODEL_4MINI = "gpt-4o-mini";
 
+    public String gptMessage(String message) throws Exception{
 
         //API 호출을 위한 본문 작성
         Map<String,Object> requestBody  = new HashMap<>();
-        requestBody .put("model","gpt-4.1");
-        requestBody .put("input",message);
-
+        requestBody .put("model", GPT_MODEL_4MINI);
+        requestBody .put("input", message);
 
         //http 요청 작성
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.openai.com/v1/responses"))
-                .header("Authorization","")
+                .header("Authorization", API_KEY)
                 .header("Content-Type","application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(requestBody))) //본문 삽입
                 .build();
