@@ -37,10 +37,8 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       GPT_API_KEY: ${GPT_API_KEY}
     depends_on:
-      redis:
-        condition: service_healthy
-      database:
-        condition: service_healthy
+      - redis
+      - database
   backend2:  # 서비스 이름은 컨테이너간 통신하기 위한 이름
     env_file: ".env"
     image: backend
@@ -54,10 +52,8 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       GPT_API_KEY: ${GPT_API_KEY}
     depends_on:
-      redis:
-        condition: service_healthy
-      database:
-        condition: service_healthy
+      - redis
+      - database
   backend3:  # 서비스 이름은 컨테이너간 통신하기 위한 이름
     env_file: ".env"
     image: backend
@@ -71,10 +67,8 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       GPT_API_KEY: ${GPT_API_KEY}
     depends_on:
-      redis:
-        condition: service_healthy
-      database:
-        condition: service_healthy
+      - redis
+      - database
 
   nginx:
     #image: nginx:1.25 #docker hub에서 이미지 가져옴
