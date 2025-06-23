@@ -9,4 +9,4 @@ COPY build/libs/backendProject-0.0.1-SNAPSHOT.jar /app/backendProject-0.0.1-SNAP
 
 ENV PROJECT_NAME ="스프링 웹 서버입니다."
 
-CMD ["java", "-jar", "/app/backendProject-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "/app/backendProject-0.0.1-SNAPSHOT.jar", "-Dspring.profiles.active=prod"]
