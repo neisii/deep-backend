@@ -128,7 +128,8 @@
         }
 
         //방생성기능
-     fetch(`/api/rooms/${roomId}`, { method: "POST" })
+        //방생성기능
+      fetch(`/api/rooms/${roomId}`, { method: "POST" })
 
       //  const socket = new WebSocket('/ws-chat');
         const socket = new WebSocket('/ws-chat?nickname=' + nickname);
@@ -140,20 +141,19 @@
             document.getElementById("enterRow").classList.add("hidden");
             document.getElementById("roomList").classList.add("hidden");
 
-           document.getElementById("whisperRow").classList.remove("hidden"); // ✅ 여기!  닉네임 작성
+            document.getElementById("whisperRow").classList.remove("hidden"); // ✅ 여기!  닉네임 작성
 
 
+            //일반채팅
             stompClient.subscribe(`/topic/room.${roomId}`, function (chat) {
                 const message = JSON.parse(chat.body);
                 showMessage(message.from, message.message);
             });
 
-
             //귓속말
             stompClient.subscribe('/user/queue/private', function (message) {
                 const msg = JSON.parse(message.body);
-                showMessage("[💬 귓속말]" + msg.from, msg.message);
-                // alert("💬 귓속말: " + msg.from + " - " + msg.message);
+                alert("💬 귓속말: " + msg.from + " - " + msg.message);
             });
 
         });
