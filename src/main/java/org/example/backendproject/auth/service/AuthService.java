@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backendproject.auth.dto.LoginRequestDTO;
 import org.example.backendproject.auth.dto.SignUpRequestDTO;
 import org.example.backendproject.user.dto.UserDTO;
+import org.example.backendproject.user.dto.UserProfileDTO;
 import org.example.backendproject.user.entity.User;
 import org.example.backendproject.user.entity.UserProfile;
 import org.example.backendproject.user.repository.UserRepository;
@@ -55,11 +56,13 @@ public class AuthService {
         userDTO.setId(user.getId());
         userDTO.setUserid(user.getUserid());
 
-        userDTO.setUsername(user.getUserProfile().getUsername());
-        userDTO.setPhone(user.getUserProfile().getPhone());
-        userDTO.setAddress(user.getUserProfile().getAddress());
-        userDTO.setEmail(user.getUserProfile().getEmail());
+        UserProfileDTO profileDTO = new UserProfileDTO();
+        profileDTO.setUsername(user.getUserProfile().getUsername());
+        profileDTO.setPhone(user.getUserProfile().getPhone());
+        profileDTO.setAddress(user.getUserProfile().getAddress());
+        profileDTO.setEmail(user.getUserProfile().getEmail());
 
+        userDTO.setProfile(profileDTO);
         return userDTO;
     }
 }
