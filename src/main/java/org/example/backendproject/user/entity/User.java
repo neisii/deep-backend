@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.backendproject.auth.entity.Auth;
 import org.example.backendproject.board.entity.Board;
+import org.example.backendproject.security.core.Role;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,10 @@ public class User extends BaseTime {
 
     @Column(nullable = false)
     private String password;
+
+//    @Column(nullable = false)
+    @Enumerated(EnumType.STRING) // 이 필드를 DB에 문자열로 저장하라는 의미
+    private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserProfile userProfile;

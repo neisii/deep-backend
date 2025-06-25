@@ -2,9 +2,9 @@ package org.example.backendproject.auth.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backendproject.auth.dto.LoginRequestDTO;
+import org.example.backendproject.auth.dto.LoginResponseDTO;
 import org.example.backendproject.auth.dto.SignUpRequestDTO;
 import org.example.backendproject.auth.service.AuthService;
-import org.example.backendproject.user.dto.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,15 +30,12 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
-        try {
-            UserDTO loginUser = authService.findByUserid(loginRequestDTO);
-            return ResponseEntity.ok(loginUser);
-        } catch(Exception e) {
-            System.out.println(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @PostMapping("/loginSecurity")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        LoginResponseDTO loginResponseDTO = authService.login(loginRequestDTO);
+//        authService.login(loginRequestDTO);
+
+        return ResponseEntity.ok(loginResponseDTO);
     }
 
 }
