@@ -7,12 +7,19 @@ import org.example.backendproject.board.dto.BoardDTO;
 import org.example.backendproject.board.entity.Board;
 import org.example.backendproject.board.service.BoardService;
 
+import org.example.backendproject.security.core.CustomUserDetails;
+import org.example.backendproject.user.repository.UserRepository;
+import org.example.backendproject.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequestMapping("/boards")
@@ -21,10 +28,13 @@ public class BoardController {
 
     private final BoardService boardService;
 
+    private final UserRepository userRepository;
+    private final UserService userService;
 
     /** 글 작성 **/
     @PostMapping
-    public ResponseEntity<BoardDTO> createBoard(@RequestBody BoardDTO boardDTO) throws JsonProcessingException {
+    public ResponseEntity<BoardDTO> createBoard(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody BoardDTO boardDTO) throws JsonProcessingException {
+        boardDTO.setUser_id(userDetails.getId());
         System.out.println("boardDTO 값 "+new ObjectMapper().writeValueAsString(boardDTO));
         BoardDTO created = boardService.createBoard(boardDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -32,19 +42,42 @@ public class BoardController {
 
     /** 게시글 상세 조회 **/
     @GetMapping("/{id}")
-    public ResponseEntity<BoardDTO> getBoardDetail(@PathVariable Long id) {
+    public ResponseEntity<BoardDTO> getBoardDetail(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long id) {
+        Long userid = userDetails.getId();
+
+        // 글을 읽으려면 유효한 사용자로 로그인이 되어 있어야 한다.
+        if (userService.getMyInfo(userid) == null) {
+            return ResponseEntity.status(NOT_FOUND).build();
+        }
+
         return ResponseEntity.ok(boardService.getBoardDetail(id));
     }
 
     /** 게시글 수정 **/
     @PutMapping("/{id}")
-    public ResponseEntity<BoardDTO> updateBoard(@PathVariable Long id, @RequestBody BoardDTO boardDTO) {
+    public ResponseEntity<BoardDTO> updateBoard(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long id, @RequestBody BoardDTO boardDTO) {
+        Long userid = userDetails.getId();
+
+        // 내가 작성한 글만 수정할 수 있다.
+        if (!boardService.getBoardDetail(id).getUser_id().equals(userid)) {
+            return ResponseEntity.status(NOT_FOUND).build();
+        }
+
         return ResponseEntity.ok(boardService.updateBoard(id, boardDTO));
     }
 
-    /** 게시글 삭제 **/
+    /**
+     * 게시글 삭제
+     **/
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBoard(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteBoard(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long id) {
+        Long userid = userDetails.getId();
+
+        // 내가 쓴 글만 삭제할 수 있다.
+        if (!boardService.getBoardDetail(id).getUser_id().equals(userid)) {
+            return ResponseEntity.status(NOT_FOUND).build();
+        }
+
         boardService.deleteBoard(id);
         return ResponseEntity.noContent().build();
     }

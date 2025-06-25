@@ -97,4 +97,24 @@ public class AuthService {
         authRespository.save(auth);
         return new LoginResponseDTO(auth);
     }
+
+    @Transactional
+    public String refreshToken(String refreshToken) {
+
+        // 리프레시 토튼 유효성 검사
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            Auth auth = authRespository.findByRefreshToken(refreshToken).orElseThrow(() -> new IllegalArgumentException("해당 리프레시 토큰을 찾을수 없음. refreshToken: " + refreshToken));
+
+            String newAccessToken = jwtTokenProvider.generateToken(
+                    new UsernamePasswordAuthenticationToken(
+                            new CustomUserDetails(auth.getUser()), auth.getUser().getPassword()), jwtRefreshTokenExpirationTime);
+
+            auth.updateAccessToken(newAccessToken);
+            authRespository.save(auth);
+
+            return newAccessToken;
+        } else {
+            throw new IllegalArgumentException("유효하지 않은 토큰");
+        }
+    }
 }

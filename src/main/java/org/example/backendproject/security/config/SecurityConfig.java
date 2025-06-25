@@ -28,13 +28,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // csrf: 사용자 모르게 악성 요청 보내는 것
                 .authorizeHttpRequests((auth)
                         -> auth
+                        // 인증 불필요 경로
                         .requestMatchers("/","/index.html", "/*.html", "/favicon.ico",
                                 "/css/**", "/fetchWithAuth.js","/js/**", "/images/**",
-                                "/.well-known/**").permitAll() // 정적 리소스 누구나 접근
-
-                        .requestMatchers("/boards/**",  "/boards").permitAll()
-
-                        .requestMatchers("/api/auth/**").permitAll() //인증이 필요한 경로
+                                "/.well-known/**", "/websocket.html").permitAll() // 정적 리소스 누구나 접근
+                        .requestMatchers("/boards/**",  "/boards", "/api/auth/**", "/api/comments", "/api/comments/**", "/api/rooms", "/api/rooms/**", "/boards/elasticsearch").permitAll()
+                        // 인증 필요 경로
+                        .requestMatchers("/api/user/**").authenticated() //인증이 필요한 경로
                 )
                 //인증 실패시 예외처리Add commentMore actions
                 .exceptionHandling(e -> e
