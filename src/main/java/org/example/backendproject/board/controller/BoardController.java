@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.backendproject.board.dto.BoardDTO;
+import org.example.backendproject.board.entity.Board;
 import org.example.backendproject.board.service.BoardService;
 
 import org.springframework.data.domain.Page;
@@ -86,12 +87,17 @@ public class BoardController {
     }
 
 
-
-
     /** 게시판 글 쓰기 배치 작업 **/
     @PostMapping("/batchInsert")
     public String batchInsert(@RequestBody List<BoardDTO> boardDTOList) {
         boardService.batchSaveBoard(boardDTOList);
+        return "ok";
+    }
+
+
+    @PostMapping("/jpaBatchInsert")
+    public String jpaBatchInsert(@RequestBody List<Board> board) {
+        boardService.boardSaveAll(board);
         return "ok";
     }
 }

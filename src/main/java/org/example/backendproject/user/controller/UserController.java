@@ -2,9 +2,12 @@ package org.example.backendproject.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backendproject.user.dto.UserDTO;
+import org.example.backendproject.user.entity.User;
 import org.example.backendproject.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -31,5 +34,11 @@ public class UserController {
     public ResponseEntity<UserDTO> updateUser(@PathVariable("id") Long userId, @RequestBody UserDTO dto) {
         UserDTO updated = userService.updateUser(userId, dto);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/jpaSaveAll")
+    public String saveAll(@RequestBody List<User> users) {
+        userService.saveAllUsers(users);
+        return "ok";
     }
 }
