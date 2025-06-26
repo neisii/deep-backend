@@ -6,7 +6,7 @@ import org.example.backendproject.auth.dto.LoginRequestDTO;
 import org.example.backendproject.auth.dto.LoginResponseDTO;
 import org.example.backendproject.auth.dto.SignUpRequestDTO;
 import org.example.backendproject.auth.entity.Auth;
-import org.example.backendproject.auth.repository.AuthRespository;
+import org.example.backendproject.auth.repository.AuthRepository;
 import org.example.backendproject.security.core.CustomUserDetails;
 import org.example.backendproject.security.core.Role;
 import org.example.backendproject.security.jwt.JwtTokenProvider;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthRespository authRespository;
+    private final AuthRepository authRepository;
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
@@ -83,18 +83,18 @@ public class AuthService {
                 , jwtRefreshTokenExpirationTime);
 
         // 현재 로그인한 사람이 디비에 있는지 확인
-        if (authRespository.existsByUser(user)) {
+        if (authRepository.existsByUser(user)) {
             Auth auth = user.getAuth();
             auth.setRefreshToken(refreshToken);
             auth.setAccessToken(accessToken);
-            authRespository.save(auth);
+            authRepository.save(auth);
 
             return new LoginResponseDTO(auth);
         }
 
         // 위에서 디비에 사용자 정보가 없으면 아래와 같이 새로 생성해서 로그인 처리
         Auth auth = new Auth(user, refreshToken, accessToken, "Bearer");
-        authRespository.save(auth);
+        authRepository.save(auth);
         return new LoginResponseDTO(auth);
     }
 
@@ -103,14 +103,14 @@ public class AuthService {
 
         // 리프레시 토튼 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            Auth auth = authRespository.findByRefreshToken(refreshToken).orElseThrow(() -> new IllegalArgumentException("해당 리프레시 토큰을 찾을수 없음. refreshToken: " + refreshToken));
+            Auth auth = authRepository.findByRefreshToken(refreshToken).orElseThrow(() -> new IllegalArgumentException("해당 리프레시 토큰을 찾을수 없음. refreshToken: " + refreshToken));
 
             String newAccessToken = jwtTokenProvider.generateToken(
                     new UsernamePasswordAuthenticationToken(
                             new CustomUserDetails(auth.getUser()), auth.getUser().getPassword()), jwtRefreshTokenExpirationTime);
 
             auth.updateAccessToken(newAccessToken);
-            authRespository.save(auth);
+            authRepository.save(auth);
 
             return newAccessToken;
         } else {

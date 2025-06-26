@@ -2,6 +2,7 @@ package org.example.backendproject.auth.controller;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.backendproject.auth.dto.LoginRequestDTO;
 import org.example.backendproject.auth.dto.LoginResponseDTO;
@@ -34,7 +35,6 @@ public class AuthController {
     @PostMapping("/loginSecurity")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         LoginResponseDTO loginResponseDTO = authService.login(loginRequestDTO);
-//        authService.login(loginRequestDTO);
 
         return ResponseEntity.ok(loginResponseDTO);
     }
@@ -69,6 +69,31 @@ public class AuthController {
         res.put("refreshToken", refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+
+        // accessToken 쿠키 삭제
+        Cookie accessTokenCookie = new Cookie("accessToken", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0); // 즉시 만료!
+
+        // refreshToken 쿠키 삭제
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+
+        // 응답에 쿠키 삭제 포함
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+
+        // (추가) 서버 세션도 있다면 만료
+        // request.getSession().invalidate();
+
+        return ResponseEntity.ok().body("로그아웃 완료 (쿠키 삭제됨)");
     }
 
 }

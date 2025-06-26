@@ -76,9 +76,16 @@ public class BoardService {
 
     /** 게시글 삭제 **/
     @Transactional
-    public void deleteBoard(Long boardId) {
+    public void deleteBoard(Long userid,Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(()-> new IllegalArgumentException("사용자 정보가 없습니다"));
+
+        if (!board.getUser().getId().equals(userid))
+            throw new IllegalArgumentException("삭제 권한이 없습니다.");
+
         if (!boardRepository.existsById(boardId))
             throw new IllegalArgumentException("게시글 없음: " + boardId);
+
         boardRepository.deleteById(boardId);
     }
 

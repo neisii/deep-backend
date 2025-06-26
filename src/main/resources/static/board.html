@@ -267,7 +267,7 @@
             method: 'POST',
             headers: Object.assign(
                 { 'Content-Type': 'application/json' },
-                (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
+                // (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
             ),
             body: JSON.stringify(data)
         })
@@ -350,7 +350,7 @@
             method: 'PUT',
             headers: Object.assign(
                 { 'Content-Type': 'application/json' },
-                (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
+                // (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
             ),
             body: JSON.stringify(data)
         })
@@ -490,7 +490,7 @@
             method: 'POST',
             headers: Object.assign(
                 { 'Content-Type': 'application/json' },
-                (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
+                // (localStorage.getItem("accessToken")) ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") } : {}
             ),
             body: JSON.stringify({
                 boardId, username, content,userId,
