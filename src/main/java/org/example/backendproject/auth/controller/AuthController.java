@@ -4,6 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.backendproject.auth.dto.LoginRequestDTO;
 import org.example.backendproject.auth.dto.LoginResponseDTO;
 import org.example.backendproject.auth.dto.SignUpRequestDTO;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
@@ -27,7 +29,7 @@ public class AuthController {
             authService.signUp(signUpRequestDTO);
             return ResponseEntity.ok("회원가입 성공");
         } catch(Exception e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }

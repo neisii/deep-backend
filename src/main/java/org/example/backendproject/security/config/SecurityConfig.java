@@ -50,6 +50,7 @@ public class SecurityConfig {
                                 "/css/**", "/fetchWithAuth.js","/js/**", "/images/**",
                                 "/.well-known/**", "/websocket.html").permitAll() // 정적 리소스 누구나 접근
                         .requestMatchers("/boards/**",  "/boards", "/api/auth/**", "/api/comments", "/api/comments/**", "/api/rooms", "/api/rooms/**", "/boards/elasticsearch").permitAll()
+                        .requestMatchers("/actuator/prometheus", "/exception").permitAll()
                         // 인증 필요 경로
                         .requestMatchers("/api/user/**").authenticated() //인증이 필요한 경로
                 )

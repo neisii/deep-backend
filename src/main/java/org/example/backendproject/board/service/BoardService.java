@@ -187,6 +187,6 @@ public class BoardService {
         }
 
         long end = System.currentTimeMillis();
-        System.out.println("JPA Board saveAll 저장 소요 시간(ms): " + (end - start));
+        log.info("JPA Board saveAll 저장 소요 시간(ms): {}", end - start);
     }
 }

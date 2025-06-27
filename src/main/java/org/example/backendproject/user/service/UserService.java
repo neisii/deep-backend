@@ -132,7 +132,7 @@ public class UserService {
         }
 
         long end = System.currentTimeMillis();
-        System.out.println("JPA saveAll 저장 소요 시간(ms): " + (end - start));
+        log.info("JPA saveAll 저장 소요 시간(ms): {}", end - start);
     }
 
 }

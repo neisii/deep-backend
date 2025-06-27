@@ -2,6 +2,7 @@ package org.example.backendproject.stompwebsocket.gpt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.net.URI;
@@ -11,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class GptService {
 
@@ -44,7 +46,7 @@ public class GptService {
 
         //응답을 Json으로 파싱
         JsonNode jsonNode = mapper.readTree(response.body());
-        System.out.println("gpt 응답 : "+jsonNode);
+        log.info("gpt 응답 : {}", jsonNode);
 
         //메세지 부분만 추출하여 반환
         String gptMessageResponse = jsonNode.get("output").get(0).get("content").get(0).get("text").asText();
