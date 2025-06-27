@@ -48,6 +48,11 @@ dependencies {
     // OAuth2  의존성
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+    //Spring Boot Actuator   매트릭/모니터링
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    //프로메테우스
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     testImplementation 'com.h2database:h2'
 }
 
