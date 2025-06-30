@@ -14,8 +14,9 @@ import org.springframework.stereotype.Component;
 public class LogAspect {
 
     //
-    @Pointcut("execution(* org.example.backendproject.board.service.BoardService..*(..)) "
-            + "execution(* org.example.backendproject.board.controller..*(..)) ") // service 패키지에 포함된 모든 클래스의 메서드 로깅
+    @Pointcut("execution(* org.example.backendproject.board.service..*(..)) ||"
+            + "execution(* org.example.backendproject.auth.service..*(..)) ||"
+            + "execution(* org.example.backendproject.user.service..*(..)) ") // service 패키지에 포함된 모든 클래스의 메서드 로깅
     public void method() {}
 
     // pointcut???
