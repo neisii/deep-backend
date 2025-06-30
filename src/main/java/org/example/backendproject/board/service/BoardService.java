@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.backendproject.board.dto.BoardDTO;
+import org.example.backendproject.board.elasticsearch.dto.BoardEsDocument;
+import org.example.backendproject.board.elasticsearch.service.BoardEsService;
 import org.example.backendproject.board.entity.Board;
 import org.example.backendproject.board.repository.BatchRepository;
 import org.example.backendproject.board.repository.BoardRepository;
@@ -29,6 +31,8 @@ public class BoardService {
     private final BatchRepository batchRepository;
     private final EntityManager em;
 
+    private final BoardEsService boardEsService;
+
     /** 글 등록 **/
     @Transactional
     public BoardDTO createBoard(BoardDTO boardDTO) {
@@ -48,7 +52,23 @@ public class BoardService {
         board.setContent(boardDTO.getContent());
         // 연관관계 매핑!
         board.setUser(user);
+
         Board saved = boardRepository.save(board);
+        // RDB 저장
+
+
+        BoardEsDocument doc = BoardEsDocument.builder()
+                .id(String.valueOf(board.getId()))
+                .title(board.getTitle())
+                .content(board.getContent())
+                .userId(board.getUser().getId())
+                .username(board.getUser().getUserProfile().getUsername())
+                .created_date(String.valueOf(board.getCreated_date()))
+                .updated_date(String.valueOf(board.getUpdated_date()))
+                .build();
+
+        boardEsService.save(doc);
+        // ES index 저장
 
         return toDTO(saved);
     }
@@ -70,6 +90,21 @@ public class BoardService {
         board.setTitle(dto.getTitle());
         board.setContent(dto.getContent());
         boardRepository.save(board);
+        // RDB 저장
+
+        BoardEsDocument doc = BoardEsDocument.builder()
+                .id(String.valueOf(board.getId()))
+                .title(board.getTitle())
+                .content(board.getContent())
+                .userId(board.getUser().getId())
+                .username(board.getUser().getUserProfile().getUsername())
+                .created_date(String.valueOf(board.getCreated_date()))
+                .updated_date(String.valueOf(board.getUpdated_date()))
+                .build();
+
+        boardEsService.save(doc);
+        // ES index 저장(ID가 동일하면 update함)
+
         return toDTO(board);
     }
 
@@ -87,6 +122,10 @@ public class BoardService {
             throw new IllegalArgumentException("게시글 없음: " + boardId);
 
         boardRepository.deleteById(boardId);
+        // RDB에서 삭제
+
+        boardEsService.deleteById(String.valueOf(boardId));
+        // ES Index에서 삭제
     }
 
 
@@ -120,7 +159,6 @@ public class BoardService {
     public Page<BoardDTO> searchBoardsPage(String keyword, int page, int size) {
         return boardRepository.searchKeywordPaging(keyword, PageRequest.of(page, size));
     }
-
 
     // Entity → DTO 변환
     private BoardDTO toDTO(Board board) {

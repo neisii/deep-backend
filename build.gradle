@@ -53,7 +53,10 @@ dependencies {
     //프로메테우스
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
     testImplementation 'com.h2database:h2'
+
 }
 
 tasks.named('test') {
