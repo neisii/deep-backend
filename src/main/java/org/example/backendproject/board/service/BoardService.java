@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -203,9 +204,23 @@ public class BoardService {
             // 1. MySQL로 INSERT
             batchRepository.batchInsert(batchList);
 
+            // 2. RDB에서 저장한 데이터 조회
+            List<BoardDTO> saveBoards = batchRepository.findByBatchkey(batchKey);
+
+            // 3. ES 인덱싱위해 ES용으로 변환
+            List<BoardEsDocument> documents = saveBoards.stream()
+                    .map(BoardEsDocument::from)
+                    .toList();
+
+            try {
+                boardEsService.bulkIndexInsert(documents);
+            } catch (IOException e) {
+                log.error("[{}][BATCH]ES bulk index error: {}", "BOARD", e.getMessage(), e);
+            }
+
         }
 
-    }
+   }
 
 
     @Transactional

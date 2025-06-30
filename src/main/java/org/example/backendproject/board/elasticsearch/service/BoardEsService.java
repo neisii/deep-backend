@@ -1,12 +1,12 @@
 package org.example.backendproject.board.elasticsearch.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.PrefixQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +57,25 @@ public class BoardEsService {
                     // PrefixQuery: 해당 필드가 키워드로 시작하는지 검사
                     // MatchQuery: 해당 필드가 키워드를 포함하는지 검사
 
+                    // 접두어 검색
                     b.should(PrefixQuery.of(p -> p.field("title").value(keyword))._toQuery());
                     b.should(PrefixQuery.of(p -> p.field("content").value(keyword))._toQuery());
+
+                    // 초성 검색
+                    b.should(PrefixQuery.of(p -> p.field("title.chosung").value(keyword))._toQuery());
+                    b.should(PrefixQuery.of(p -> p.field("content.chosung").value(keyword))._toQuery());
+
+                    // 중간 글자 검색
+                    b.should(MatchQuery.of(m -> m.field("title.ngram").query(keyword))._toQuery());
+                    b.should(MatchQuery.of(m -> m.field("content.ngram").query(keyword))._toQuery());
+
+                    // fuzziness: "AUTO"는  오타 허용 검색 기능을 자동으로 켜주는 설정 -> 유사도 계산을 매번 수행하기 때문에 느림
+                    //짧은 키워드에는 사용 xxx
+                    //오타 허용 (오타허용은 match만 가능 )
+                    if (keyword.length()>=3){
+                        b.should(MatchQuery.of(m ->m.field("title").query(keyword).fuzziness("AUTO"))._toQuery());
+                        b.should(MatchQuery.of(m ->m.field("content").query(keyword).fuzziness("AUTO"))._toQuery());
+                    }
 
                     return b;
                 })._toQuery();
@@ -94,4 +111,38 @@ public class BoardEsService {
         }
 
     }
+
+    public void bulkIndexInsert(List<BoardEsDocument> documents) throws IOException {
+        int batchSize = 1000;
+
+        for (int i = 0; i < documents.size(); i+=batchSize) {
+
+            int end = Math.min(documents.size(), i+batchSize);
+
+            List<BoardEsDocument> batch = documents.subList(i, end);
+            
+            // ES의 bulk 요청을 담을 빌더
+            BulkRequest.Builder br = new BulkRequest.Builder();
+
+            for (BoardEsDocument document : batch) {
+                br.operations(op -> op
+                        .index(idx -> idx // 인덱스에 문서 저장
+                                .index("board-index")
+                                .id(document.getId()) // ID 수동 지정
+                                .document(document) // 실 저장 문서 객체
+                        ));
+            }
+
+            BulkResponse bulkResponse = client.bulk(br.build());
+
+            if (bulkResponse.errors()) {
+                for (BulkResponseItem item : bulkResponse.items()) {
+                    if (item.error() != null) {
+                        log.error("ES bulk index error ID: {}, EORROR: {}", item.id(), item.error());
+                    }
+                }
+            }
+        }
+    }
+
 }

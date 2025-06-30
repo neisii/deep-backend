@@ -57,8 +57,4 @@ public interface BoardRepository extends JpaRepository<Board,Long> {
             "OR LOWER(b.content) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     // + "ORDER BY b.title DESC")// 쿼리로 정렬
     Page<BoardDTO> searchKeywordPaging(@Param("keyword") String keyword, Pageable pageable);
-
-
-
-
 }

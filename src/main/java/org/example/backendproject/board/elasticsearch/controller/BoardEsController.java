@@ -18,7 +18,7 @@ public class BoardEsController {
     private final BoardEsService boardEsService;
 
 
-    @GetMapping("elasticsearch")
+    @GetMapping("/elasticsearch")
     public ResponseEntity<Page<BoardEsDocument>> elasticSearch(
             @RequestParam String keyword
             , @RequestParam(defaultValue = "0") int page
