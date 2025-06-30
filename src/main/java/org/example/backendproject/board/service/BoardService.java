@@ -143,7 +143,6 @@ public class BoardService {
     /** 배치작업 **/
     @Transactional
     public void batchSaveBoard(List<BoardDTO> boardDTOList) {
-        Long start = System.currentTimeMillis();
 
         int batchsize = 1000; //한번에 처리할 배치 크기
         for (int i = 0; i < boardDTOList.size(); i+=batchsize) { //i는 1000씩 증가
@@ -168,16 +167,11 @@ public class BoardService {
 
         }
 
-        Long end = System.currentTimeMillis();
-        log.info("[BOARD][BATCH] 전체 저장 소요 시간(ms): {}", (end - start));
-        log.info("[BOARD][BATCH] 데이터 사이즈 : {}", boardDTOList.size());
     }
 
 
     @Transactional
     public void boardSaveAll(List<Board> boardList){
-        long start = System.currentTimeMillis();
-
         for (int i = 0; i<boardList.size(); i++) {
             em.persist(boardList.get(i));
             if (i % 1000 == 0){
@@ -186,7 +180,5 @@ public class BoardService {
             }
         }
 
-        long end = System.currentTimeMillis();
-        log.info("JPA Board saveAll 저장 소요 시간(ms): {}", end - start);
     }
 }

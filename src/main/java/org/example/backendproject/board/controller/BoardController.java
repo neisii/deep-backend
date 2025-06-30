@@ -31,9 +31,18 @@ public class BoardController {
     /** 글 작성 **/
     @PostMapping
     public ResponseEntity<?> createBoard(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody BoardDTO boardDTO) throws JsonProcessingException {
+        long start = System.currentTimeMillis();
+        log.info("글 작성 시작");
+
         boardDTO.setUser_id(userDetails.getId());
         log.info("boardDTO 값 {}", new ObjectMapper().writeValueAsString(boardDTO));
         BoardDTO created = boardService.createBoard(boardDTO);
+
+
+        long end = System.currentTimeMillis();
+        log.info("글 작성 완료 시간 = {}", (end - start));
+
+
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -43,15 +52,25 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getBoardDetail(id));
     }
 
-    /** 게시글 수정 **/
+    /**
+     * 게시글 수정
+     **/
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBoard(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long id, @RequestBody BoardDTO boardDTO) {
+        long start = System.currentTimeMillis();
+        log.info("글 수정 시작");
+        
         Long userid = userDetails.getId();
 
         // 내가 작성한 글만 수정할 수 있다.
         if (!boardService.getBoardDetail(id).getUser_id().equals(userid)) {
             return ResponseEntity.status(NOT_FOUND).body("수정 권한 없음");
         }
+
+
+        long end = System.currentTimeMillis();
+        log.info("글 수정 완료 시간 = {}", (end - start));
+
 
         return ResponseEntity.ok(boardService.updateBoard(id, boardDTO));
     }

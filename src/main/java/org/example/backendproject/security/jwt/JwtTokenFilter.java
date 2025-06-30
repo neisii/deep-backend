@@ -6,7 +6,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.backendproject.security.core.CustomUserDetailsService;
+import org.example.backendproject.threadlocal.TraceIdHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,8 +18,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
@@ -27,27 +30,73 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
 
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        log.info("path : {}", path);
+
+        // 정적 파일 경로, 필터
+        return path.startsWith("/css/")
+                || path.startsWith("/js/")
+                || path.startsWith("/images/")
+                || path.equals("/")
+                || path.equals("/index.html")
+                || path.endsWith(".html")
+                || path.startsWith("/favicon.ico")
+                || path.startsWith("/api/auth/");
+
+        /**
+         config에서 인증하라고하고 여기서 인증 무시하라고 하면 401 에러남
+         **/
+    }
+
+
     // 매 HTTP 요청마다 호출
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String accessToken = getTokenFromRequest(request);
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+        try {
+            // HTTP 요청이 시작되는 구간에서 TraceId 발급
+            String traceId = UUID.randomUUID().toString().substring(0, 8);
+            TraceIdHolder.set(traceId);
 
-            UsernamePasswordAuthenticationToken authenticationToken = getAuthentication(accessToken);
-            // 토큰에서 사용자를 꺼내서 담은 사용자 인증 객체
+            String accessToken = getTokenFromRequest(request);
+            if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
 
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            // HTTP 요청으로부터 부가정보(IP, Session 등)를 추출해서 사용자 인증 객체에 넣는다.
+                UsernamePasswordAuthenticationToken authenticationToken = getAuthentication(accessToken);
+                // 토큰에서 사용자를 꺼내서 담은 사용자 인증 객체
 
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            // 토큰에서 사용자 인증 정보를 조회한 인증 정보를 현재 스레드에 인증된 사용자로 등록
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // HTTP 요청으로부터 부가정보(IP, Session 등)를 추출해서 사용자 인증 객체에 넣는다.
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                // 토큰에서 사용자 인증 정보를 조회한 인증 정보를 현재 스레드에 인증된 사용자로 등록
 
 
-            String url = request.getRequestURI().toString();
-            String method = request.getMethod(); // GET, PUT, POST ..
+                String url = request.getRequestURI().toString();
+                String method = request.getMethod(); // GET, PUT, POST ..
+
+
+                log.info("현재 들어온 HTTP 요청 = {}", url);
+                log.info("✅ 토큰 인증 성공:{} ", accessToken);
+
+            } else {
+                log.info("❌ 토큰 없음 또는 유효하지 않음: {}" ,accessToken);
+            }
+
+            filterChain.doFilter(request, response); // JwtTokenFilter를 거치고 다음 필터로 넘어감.
+
+            // catch는 따로 하지 않음.
+        } finally {
+            TraceIdHolder.clear();
+            String afterClear = TraceIdHolder.get();
+            log.info("TraceIdHolder clear : {}", afterClear);
+
         }
+
 
         /*
         * 필터 종류
@@ -58,7 +107,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
          SecurityContextFilter: 인증/인가 정보 저장
          ExceptionFilter: 예외 처리
         * */
-        filterChain.doFilter(request, response); // JwtTokenFilter를 거치고 다음 필터로 넘어감.
     }
 
     // HTTP 요청 헤더에서 토큰을 추출
