@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 
-@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
@@ -25,13 +24,8 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody SignUpRequestDTO signUpRequestDTO) {
-        try {
-            authService.signUp(signUpRequestDTO);
-            return ResponseEntity.ok("회원가입 성공");
-        } catch(Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+        authService.signUp(signUpRequestDTO);
+        return ResponseEntity.ok("회원가입 성공");
     }
 
     @PostMapping("/loginSecurity")
