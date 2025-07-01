@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -138,11 +139,14 @@ public class BoardEsService {
             if (bulkResponse.errors()) {
                 for (BulkResponseItem item : bulkResponse.items()) {
                     if (item.error() != null) {
-                        log.error("ES bulk index error ID: {}, EORROR: {}", item.id(), item.error());
+                        log.error("ES bulk index error ID: {}, ERROR: {}", item.id(), item.error());
                     }
                 }
             }
         }
     }
 
+    public Optional<BoardEsDocument> findById(String boardId) {
+        return boardEsRepository.findById(boardId);
+    }
 }

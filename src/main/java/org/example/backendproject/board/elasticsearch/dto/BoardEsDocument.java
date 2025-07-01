@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.example.backendproject.board.dto.BoardDTO;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true) // ES index에 _class 속성 제외
 @Document(indexName = "board-index")
 @Data
 @NoArgsConstructor
@@ -26,6 +26,7 @@ public class BoardEsDocument {
     private Long userId;
     private String created_date;
     private String updated_date;
+    private Long viewCount = 0L;
 
 
     public static BoardEsDocument from(BoardDTO dto) {
@@ -36,7 +37,8 @@ public class BoardEsDocument {
                 .username(dto.getUsername())
                 .userId(dto.getUser_id())
                 .created_date(dto.getCreated_date() != null ? dto.getCreated_date().toString() : null)
-                .updated_date(dto.getUpdated_date() !=null ? dto.getUpdated_date().toString() : null)
-                        .build();
+                .updated_date(dto.getUpdated_date() != null ? dto.getUpdated_date().toString() : null)
+                .viewCount(dto.getViewCount())
+                .build();
     }
 }

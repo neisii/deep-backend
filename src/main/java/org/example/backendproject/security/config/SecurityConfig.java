@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/prometheus", "/exception", "/exception/**").permitAll()
                         .requestMatchers("/ws-gpt", "/ws-chat").permitAll()
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        .requestMatchers("/boards/batchEsInsert").permitAll()
                         // 인증 필요 경로
                         .requestMatchers("/api/user/**").authenticated() //인증이 필요한 경로
                 )

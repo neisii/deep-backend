@@ -208,7 +208,7 @@
             <td class="title" onclick="showDetail(${b.id})">${b.title}</td>
             <td>${b.username || b.user_id}</td>
             <td>${b.created_date ? b.created_date.substring(0,10) : ''}</td>
-            <td>${b.viewCount ?? 0}</td>
+            <td>${b.view_count ?? 0}</td>
         </tr>`;
         });
         document.getElementById('board-list-body').innerHTML = html;
@@ -324,7 +324,7 @@
                 document.getElementById('detail-title').textContent = board.title;
                 document.getElementById('detail-content').textContent = board.content;
                 document.getElementById('detail-writer').textContent = board.user_id;
-                document.getElementById('detail-viewCount').textContent = board.viewCount ?? 0;
+                document.getElementById('detail-viewCount').textContent = board.view_count ?? 0;
                 console.log("localStorage.getItem(user_id) = ",localStorage.getItem("user_id"))
                 console.log("board.user_id = ",board.user_id)
 

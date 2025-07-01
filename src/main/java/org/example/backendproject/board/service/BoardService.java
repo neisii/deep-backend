@@ -1,6 +1,7 @@
 package org.example.backendproject.board.service;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.backendproject.board.dto.BoardDTO;
@@ -76,10 +77,19 @@ public class BoardService {
 
 
     /** 게시글 상세 조회 **/
-    @Transactional(readOnly = true)
     public BoardDTO getBoardDetail(Long boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글 없음: " + boardId));
+
+        // Mysql 조회 수 증가
+        board.setViewCount(board.getViewCount() + 1);
+
+        // ES 조회 수 증가
+        BoardEsDocument esDocument = boardEsService.findById(String.valueOf(boardId))
+                .orElseThrow(() -> new IllegalArgumentException("ES에 게시물 없음 : " + boardId));
+        esDocument.setViewCount(board.getViewCount());
+        boardEsService.save(esDocument);
+
         return toDTO(board);
     }
 
@@ -173,6 +183,9 @@ public class BoardService {
 
         dto.setCreated_date(board.getCreated_date());
         dto.setUpdated_date(board.getUpdated_date());
+
+        dto.setViewCount(board.getViewCount());
+
         return dto;
     }
 
@@ -217,6 +230,54 @@ public class BoardService {
             } catch (IOException e) {
                 log.error("[{}][BATCH]ES bulk index error: {}", "BOARD", e.getMessage(), e);
             }
+
+        }
+
+   }
+
+   // ES 전체 인덱싱
+    public void batchSaveEsBoard() throws Exception {
+        // 1. RDB에서 전체 데이터 수 조회
+        long boardCount = boardRepository.count();
+
+        int page = 0;
+        int batchsize = 1000; //한번에 처리할 배치 크기
+        for (int i = 0; i < boardCount; i+=batchsize) {
+            int end = Math.min(Math.toIntExact(boardCount), i+batchsize);
+
+            // 2. 단위 데이터 가져와서
+            Page<BoardDTO> dtoPage = boardRepository.findAllPaging(PageRequest.of(page, end));
+
+            log.info("page info {} per count {}", page, dtoPage.stream().count());
+
+            List<BoardDTO> batchList = dtoPage.getContent();
+
+            String batchKey;
+
+            for (BoardDTO dto : batchList) {
+                batchKey = UUID.randomUUID().toString();
+
+                if (dto.getBatchkey() == null) {
+                    dto.setBatchkey(batchKey);
+                }
+            }
+
+            // 3. ES 인덱싱위해 ES용으로 변환
+            List<BoardEsDocument> documents = batchList.stream()
+                    .map(BoardEsDocument::from)
+                    .toList();
+
+            if (documents.isEmpty()) {
+                throw new NoResultException("ESDocument 변환 실패");
+            }
+
+            try {
+                boardEsService.bulkIndexInsert(documents);
+            } catch (IOException e) {
+                log.error("[{}][BATCH]ES bulk index error: {}", "BOARD", e.getMessage(), e);
+            }
+
+            page++;
 
         }
 

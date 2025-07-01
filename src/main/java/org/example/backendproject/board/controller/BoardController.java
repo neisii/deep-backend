@@ -8,7 +8,6 @@ import org.example.backendproject.board.dto.BoardDTO;
 import org.example.backendproject.board.entity.Board;
 import org.example.backendproject.board.service.BoardService;
 import org.example.backendproject.security.core.CustomUserDetails;
-import org.example.backendproject.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,6 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class BoardController {
 
     private final BoardService boardService;
-    private final UserService userService;
 
     /** 글 작성 **/
     @PostMapping
@@ -127,7 +125,6 @@ public class BoardController {
     ) {
         return boardService.searchBoardsPage(keyword, page, size);
     }
-
 
     /** 게시판 글 쓰기 배치 작업 **/
     @PostMapping("/batchInsert")
