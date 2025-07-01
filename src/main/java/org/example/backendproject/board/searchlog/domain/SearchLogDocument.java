@@ -1,0 +1,24 @@
+package org.example.backendproject.board.searchlog.domain;
+
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.elasticsearch.annotations.Document;
+
+@Document(indexName = "search-log-index")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SearchLogDocument {
+
+    @Id
+    private String id;
+    private String keyword;
+    private String userId;
+    private String searchedAt;
+
+
+}
